@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://ai-resume-analyzer-3-xudw.onrender.com/api';
 
 // Small helper to silently authenticate a demo user
 // It guarantees that we have a JWT token securely stored.
