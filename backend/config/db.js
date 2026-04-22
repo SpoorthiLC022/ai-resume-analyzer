@@ -5,33 +5,25 @@ dotenv.config();
 let pool;
 
 const initDB = async () => {
-  // First, connect securely without defining the database name to conditionally create it
-  const initConnection = await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || ''
-  });
+  try {
+    pool = mysql.createPool({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    });
 
-  const dbName = process.env.DB_NAME || 'resume_analyzer';
+    console.log(`MySQL Connected to database: ${process.env.DB_NAME}`);
 
-  await initConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
-  await initConnection.end();
-
-  // Create the standard connection pool
-  pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: dbName,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-  });
-
-  console.log(`MySQL Connected to database: ${dbName}`);
-
-  // Create tables if they do not exist
-  await createTables();
+    await createTables();
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    process.exit(1);
+  }
 };
 
 const createTables = async () => {
@@ -73,6 +65,7 @@ const createTables = async () => {
   await pool.query(usersTable);
   await pool.query(resumesTable);
   await pool.query(analysisTable);
+
   console.log('Tables verified/created successfully.');
 };
 
