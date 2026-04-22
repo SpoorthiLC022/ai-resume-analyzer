@@ -15,13 +15,29 @@ const UploadPage = () => {
   const handleUpload = async (file) => {
     setIsUploading(true);
     try {
-      const response = await api.uploadResume(file, preferences);
-      if (response.success) {
-        setAnalysisData(response.data);
-        addHistoryRecord(file.name || 'Uploaded_Resume', response.data);
-        toast.success(response.message);
-        navigate('/dashboard');
-      }
+      // 1. Upload Buffer
+      const uploadRes = await api.uploadResume(file);
+      const resumeId = uploadRes.resumeId;
+      if (!resumeId) throw new Error("Missing resume ID");
+
+      // 2. Trigger OpenAI inference
+      const analysisRes = await api.analyzeResume(resumeId);
+      
+      // 3. Destructure and format for Context constraints
+      const aiData = analysisRes.data;
+      const payload = {
+        resumeId: resumeId,
+        score: aiData.score || 0,
+        skills: aiData.skills || [],
+        missing: aiData.missing_keywords || [],
+        suggestions: aiData.suggestions || [],
+        lastUpdated: new Date().toISOString()
+      };
+
+      setAnalysisData(payload);
+      addHistoryRecord(file.name || 'Uploaded_Resume', payload);
+      toast.success("Resume analyzed successfully!");
+      navigate('/dashboard');
     } catch (error) {
       toast.error("Failed to analyze resume. Please try again.");
     } finally {

@@ -13,16 +13,8 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Memory abstraction utilizing Multer securely passing binaries to fs
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Secure Render environments mapping Buffer over ephemeral disk directories
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage: storage,
@@ -38,9 +30,8 @@ const upload = multer({
   }
 });
 
-router.post('/upload', authMiddleware, upload.single('resume'), uploadAndParse);
-router.post('/analyze', authMiddleware, executeAnalysis);
-router.post('/job-match', authMiddleware, executeJobMatch);
-router.get('/:id', authMiddleware, getAnalysisResult);
+router.post('/upload', upload.single('resume'), uploadAndParse);
+router.post('/analyze', executeAnalysis);
+router.post('/job-match', executeJobMatch);
 
 module.exports = router;

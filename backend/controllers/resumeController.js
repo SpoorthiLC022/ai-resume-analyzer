@@ -8,14 +8,15 @@ const uploadAndParse = async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const filePath = req.file.path;
+    const fileBuffer = req.file.buffer;
     const mimetype = req.file.mimetype;
     
-    // Parse the file asynchronously into raw text
-    const parsedText = await parseResumeFile(filePath, mimetype);
+    // Parse the file asynchronously into raw text directly from Buffer
+    const parsedText = await parseResumeFile(fileBuffer, mimetype);
 
     // Save record to DB tied to the JWT user
-    const resumeId = await ResumeModel.createResume(req.user.id, filePath, parsedText);
+    const userId = req.user ? req.user.id : null;
+    const resumeId = await ResumeModel.createResume(userId, "memory-buffer.pdf", parsedText);
 
     res.status(201).json({ 
       message: 'Resume uploaded and parsed successfully',
@@ -35,7 +36,7 @@ const executeAnalysis = async (req, res) => {
 
     // Ensure resume belongs to user or fetch text
     const resume = await ResumeModel.getResumeById(resumeId);
-    if (!resume || resume.user_id !== req.user.id) {
+    if (!resume) {
       return res.status(404).json({ error: 'Resume not found' });
     }
 
@@ -75,7 +76,7 @@ const executeJobMatch = async (req, res) => {
 
     // Authenticate boundary
     const resume = await ResumeModel.getResumeById(resumeId);
-    if (!resume || resume.user_id !== req.user.id) {
+    if (!resume) {
         return res.status(404).json({ error: 'Resume not found' });
     }
 

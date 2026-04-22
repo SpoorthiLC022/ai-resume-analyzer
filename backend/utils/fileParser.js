@@ -2,9 +2,8 @@ const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
-const parseResumeFile = async (filePath, mimetype) => {
+const parseResumeFile = async (dataBuffer, mimetype) => {
   try {
-    const dataBuffer = fs.readFileSync(filePath);
     let extractedText = '';
 
     if (mimetype === 'application/pdf') {

@@ -10,7 +10,9 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: "*"
+  origin: "*",
+  methods: ["GET", "POST"],
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -20,7 +22,7 @@ app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/resume', require('./routes/resumeRoutes'));
+app.use('/api', require('./routes/resumeRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
